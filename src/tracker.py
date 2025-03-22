@@ -12,10 +12,8 @@ from notifier import send_discord_notification
 load_dotenv()
 
 MAL_CLIENT_ID = os.getenv("MAL_CLIENT_ID")
-
-# MyAnimeList API endpoints
-API_URL = "https://api.myanimelist.net/v2/anime/ranking?ranking_type=airing&limit=5"
 HEADERS = {"X-MAL-CLIENT-ID": MAL_CLIENT_ID}
+API_URL = "https://api.myanimelist.net/v2/anime/ranking?ranking_type=airing&limit=10"
 
 
 def get_new_releases():
@@ -28,7 +26,7 @@ def get_new_releases():
 
 def get_anime_details(anime_id):
     """Fetch detailed anime information from MyAnimeList API."""
-    details_url = f"https://api.myanimelist.net/v2/anime/{anime_id}?fields=title,main_picture,start_date,genres,rank,score,media_type,num_list_users,next_episode"
+    details_url = f"https://api.myanimelist.net/v2/anime/{anime_id}?fields=title,main_picture,start_date,genres,rank,score,media_type,num_list_users,nsfw,studios,episodes,next_episode"
     response = requests.get(details_url, headers=HEADERS)
     return response.json() if response.status_code == 200 else {}
 
@@ -50,13 +48,9 @@ def format_next_episode_time(next_episode_timestamp):
 def main():
     last_sent = get_last_sent()
     new_releases = get_new_releases()
-    sent_notifications = []
 
     for anime in new_releases:
         anime_id = anime["node"]["id"]
-        if anime_id in last_sent:
-            continue
-
         details = get_anime_details(anime_id)
         if not details:
             continue
@@ -70,7 +64,16 @@ def main():
         rank = details.get("rank", "N/A")
         members = details.get("num_list_users", 0)
         next_episode = format_next_episode_time(details.get("next_episode"))
+        episode_number = details.get("episodes", 0)  # Latest available episode
 
+        # Skip if no new episode is available
+        if (
+            anime_id in last_sent
+            and last_sent[anime_id]["last_episode"] >= episode_number
+        ):
+            continue  # Already notified this episode
+
+        # Send Discord notification
         send_discord_notification(
             title,
             anime_url,
@@ -82,10 +85,10 @@ def main():
             members,
             next_episode,
         )
-        sent_notifications.append(anime_id)
 
-    if sent_notifications:
-        save_last_sent(sent_notifications)
+        # Update last_sent.json with latest episode number
+        last_sent[anime_id] = {"title": title, "last_episode": episode_number}
+        save_last_sent(last_sent)
 
 
 if __name__ == "__main__":
