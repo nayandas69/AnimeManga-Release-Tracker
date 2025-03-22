@@ -69,7 +69,6 @@ This will fetch new anime releases and send notifications to **Discord**.
 
 
 ## **Example Discord Notification**
-  
-
+<img src="img/Demo.png" alt="Demo">
 
 💖 **Enjoy & Star ⭐ this project if you find it useful!**
