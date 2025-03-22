@@ -71,6 +71,6 @@ This will fetch **new anime episodes & manga chapters** and send notifications t
 
 ## **Example Discord Notification**
 
-[Anime Demo](img/anime_demo.png)
+<img src="img/Demo.png" alt="Demo">
 
 💖 **Enjoy & Star ⭐ this project if you find it useful!**
