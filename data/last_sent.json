@@ -10,5 +10,29 @@
     "54857": {
         "title": "Re:Zero kara Hajimeru Isekai Seikatsu 3rd Season",
         "last_episode": 16
+    },
+    "anime": {
+        "58567": {
+            "title": "Ore dake Level Up na Ken Season 2: Arise from the Shadow",
+            "last_episode": 13
+        },
+        "58514": {
+            "title": "Kusuriya no Hitorigoto 2nd Season",
+            "last_episode": 24
+        },
+        "54857": {
+            "title": "Re:Zero kara Hajimeru Isekai Seikatsu 3rd Season",
+            "last_episode": 16
+        }
+    },
+    "manga": {
+        "23390": {
+            "title": "Shingeki no Kyojin",
+            "last_chapter": 141
+        },
+        "121496": {
+            "title": "Solo Leveling",
+            "last_chapter": 201
+        }
     }
 }
