@@ -11,7 +11,7 @@ def get_random_color():
 
 
 def send_discord_notification(
-    title, anime_url, image_url, genres, anime_type, score, rank, members, next_episode
+    title, anime_url, image_url, genres, anime_type, score, rank, members, num_episodes
 ):
     """Send a rich Discord embed notification with detailed anime info."""
     embed = {
@@ -22,7 +22,7 @@ def send_discord_notification(
             f" **Type**: {anime_type}\n"
             f" **MAL Score**: {score} | Ranked **#{rank}**\n"
             f" **Members**: {members}\n"
-            f" **Next Episode**: {next_episode}"
+            f" **Episodes**: {num_episodes}"
         ),
         "color": get_random_color(),
         "thumbnail": {"url": image_url},

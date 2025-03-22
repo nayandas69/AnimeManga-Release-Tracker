@@ -5,15 +5,19 @@ LAST_SENT_FILE = "data/last_sent.json"
 
 
 def get_last_sent():
-    """Retrieve the dictionary of last notified anime episodes. Auto-create file if missing."""
+    """Retrieve stored last sent notifications. Ensure it returns a dictionary."""
     if not os.path.exists(LAST_SENT_FILE):
-        save_last_sent({})  # Create an empty dictionary
+        save_last_sent({})  # Store as an empty dictionary instead of a list
 
     with open(LAST_SENT_FILE, "r") as file:
-        return json.load(file)
+        try:
+            data = json.load(file)
+            return data if isinstance(data, dict) else {}  # Ensure dictionary format
+        except json.JSONDecodeError:
+            return {}  # Return empty dictionary if file is corrupted
 
 
-def save_last_sent(sent_data):
-    """Save the dictionary of last notified anime episodes to prevent duplicate messages."""
+def save_last_sent(sent_dict):
+    """Save the list of sent anime episodes to prevent duplicate notifications."""
     with open(LAST_SENT_FILE, "w") as file:
-        json.dump(sent_data, file, indent=4)  # Pretty format JSON
+        json.dump(sent_dict, file, indent=4)

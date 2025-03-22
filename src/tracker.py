@@ -12,8 +12,10 @@ from notifier import send_discord_notification
 load_dotenv()
 
 MAL_CLIENT_ID = os.getenv("MAL_CLIENT_ID")
+
+# MyAnimeList API endpoints
+API_URL = "https://api.myanimelist.net/v2/anime/ranking?ranking_type=airing&limit=5"
 HEADERS = {"X-MAL-CLIENT-ID": MAL_CLIENT_ID}
-API_URL = "https://api.myanimelist.net/v2/anime/ranking?ranking_type=airing&limit=10"
 
 
 def get_new_releases():
@@ -26,31 +28,31 @@ def get_new_releases():
 
 def get_anime_details(anime_id):
     """Fetch detailed anime information from MyAnimeList API."""
-    details_url = f"https://api.myanimelist.net/v2/anime/{anime_id}?fields=title,main_picture,start_date,genres,rank,score,media_type,num_list_users,nsfw,studios,episodes,next_episode"
+    details_url = f"https://api.myanimelist.net/v2/anime/{anime_id}?fields=title,main_picture,start_date,genres,rank,score,media_type,num_list_users,num_episodes"
     response = requests.get(details_url, headers=HEADERS)
     return response.json() if response.status_code == 200 else {}
 
 
-def format_next_episode_time(next_episode_timestamp):
+def format_next_episode_time(utc_timestamp):
     """Convert UTC timestamp to local time and show countdown."""
-    if not next_episode_timestamp:
+    if not utc_timestamp:
         return "Not Available"
 
-    utc_time = datetime.fromisoformat(next_episode_timestamp.replace("Z", "+00:00"))
-    local_time = utc_time.astimezone(
-        pytz.timezone("Asia/Dhaka")
-    )  # Change to your time zone
+    utc_time = datetime.fromisoformat(utc_timestamp.replace("Z", "+00:00"))
+    local_time = utc_time.astimezone(pytz.timezone("Asia/Dhaka"))  # Change time zone
     time_left = utc_time - datetime.now(timezone.utc)
 
     return f"{local_time.strftime('%B %d, %Y %I:%M %p')} ({time_left.days} days left)"
 
 
 def main():
-    last_sent = get_last_sent()
+    last_sent = get_last_sent()  # Load previously sent notifications
     new_releases = get_new_releases()
+    sent_notifications = False  # Flag to check if any updates were sent
 
     for anime in new_releases:
-        anime_id = anime["node"]["id"]
+        anime_id = str(anime["node"]["id"])  # Ensure anime_id is a string
+
         details = get_anime_details(anime_id)
         if not details:
             continue
@@ -63,17 +65,15 @@ def main():
         score = details.get("score", "N/A")
         rank = details.get("rank", "N/A")
         members = details.get("num_list_users", 0)
-        next_episode = format_next_episode_time(details.get("next_episode"))
-        episode_number = details.get("episodes", 0)  # Latest available episode
+        num_episodes = details.get("num_episodes", "N/A")
 
-        # Skip if no new episode is available
-        if (
-            anime_id in last_sent
-            and last_sent[anime_id]["last_episode"] >= episode_number
-        ):
-            continue  # Already notified this episode
+        # If this anime is already in last_sent.json, check for new episodes
+        last_episode_sent = last_sent.get(anime_id, {}).get("last_episode", 0)
 
-        # Send Discord notification
+        # Send notification only if a new episode is detected
+        if num_episodes == "N/A" or num_episodes <= last_episode_sent:
+            continue  # Skip if no new episode
+
         send_discord_notification(
             title,
             anime_url,
@@ -83,11 +83,13 @@ def main():
             score,
             rank,
             members,
-            next_episode,
+            num_episodes,
         )
+        last_sent[anime_id] = {"title": title, "last_episode": num_episodes}
+        sent_notifications = True
 
-        # Update last_sent.json with latest episode number
-        last_sent[anime_id] = {"title": title, "last_episode": episode_number}
+    # Save updated last_sent.json if new notifications were sent
+    if sent_notifications:
         save_last_sent(last_sent)
 
 
