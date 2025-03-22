@@ -1,13 +1,15 @@
 # **AnimeManga Release Tracker**  
 
-🫠 **AnimeManga Release Tracker** is a Python-based automation tool that **fetches new anime episode releases** from **MyAnimeList** and **sends rich notifications** to a Discord webhook.  
+🫠 **AnimeManga Release Tracker** is a Python-based automation tool that **fetches new anime episode and manga chapter releases** from **MyAnimeList** and **sends rich notifications** to a Discord webhook.  
 
-🔹 **Supports:**  
-✅ **Genres & Type** (TV, Movie, OVA) 📌  
+## 🔹 **Features:**  
+✅ **Tracks both Anime & Manga** 📖📺  
+✅ **Anime Genres & Type** (TV, Movie, OVA) 📌  
 ✅ **Next Episode Countdown** (Time left until release) ⏳  
 ✅ **Localized Time Conversion** (UTC → Local Time) 🌍  
 ✅ **Popularity Stats** (Score, Rank, Members) 📊  
-✅ **Rich Discord Messages** with **random embed colors** 🎨  
+✅ **Sends Rich Discord Messages** with **random embed colors** 🎨  
+✅ **Avoids Duplicate Notifications** 🚀  
 
 
 ## 🛠 **Setup & Installation**  
@@ -23,16 +25,17 @@ cd AnimeManga-Release-Tracker
 pip install -r requirements.txt
 ```
 
-### 🔐 **Setting Up Repository Secrets in GitHub**  
+
+## 🔐 **Setting Up Repository Secrets in GitHub**  
 
 Instead of using a `.env` file locally, you can store **API keys securely** in **GitHub Secrets**.  
 
-#### **Go to Your GitHub Repository**  
+### **1️⃣ Go to Your GitHub Repository**  
 - Open your **GitHub repository**  
 - Click on **Settings**  
 - Scroll down to **"Secrets and variables" → "Actions"**  
 
-#### **Add Secrets**  
+### **2️⃣ Add Secrets**  
 Click **"New repository secret"** and add the following:  
 
 | Secret Name          | Value (Example)             |
@@ -40,15 +43,13 @@ Click **"New repository secret"** and add the following:
 | `MAL_CLIENT_ID`     | `your_mal_client_id_here`  |
 | `DISCORD_WEBHOOK`   | `your_discord_webhook_url` |
 
-#### **Use Secrets in GitHub Actions**  
+### **3️⃣ Use Secrets in GitHub Actions**  
 The workflow **automatically loads** these secrets:  
 ```yaml
 env:
   MAL_CLIENT_ID: ${{ secrets.MAL_CLIENT_ID }}
   DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
 ```
-
-**Now your API keys are secure!** 🔒
 
 🔹 **How to get `MAL_CLIENT_ID`?**  
 - Go to [MyAnimeList API](https://myanimelist.net/apiconfig)  
@@ -65,10 +66,11 @@ env:
 ```bash
 python src/tracker.py
 ```
-This will fetch new anime releases and send notifications to **Discord**.  
+This will fetch **new anime episodes & manga chapters** and send notifications to **Discord**.  
 
 
 ## **Example Discord Notification**
-<img src="img/Demo.png" alt="Demo">
+
+[Anime Demo](img/anime_demo.png)
 
 💖 **Enjoy & Star ⭐ this project if you find it useful!**
