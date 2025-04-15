@@ -1,139 +1,109 @@
-import requests
 import os
-import json
-import random
-from datetime import datetime, timezone
-import pytz
+import requests
 from dotenv import load_dotenv
 from utils import get_last_sent, save_last_sent
 from notifier import send_discord_notification
 
-# Load environment variables
 load_dotenv()
 
 MAL_CLIENT_ID = os.getenv("MAL_CLIENT_ID")
-
-# MyAnimeList API endpoints
-ANIME_API_URL = (
-    "https://api.myanimelist.net/v2/anime/ranking?ranking_type=airing&limit=5"
-)
-MANGA_API_URL = (
-    "https://api.myanimelist.net/v2/manga/ranking?ranking_type=bypopularity&limit=5"
-)
 HEADERS = {"X-MAL-CLIENT-ID": MAL_CLIENT_ID}
 
+ANIME_URL = "https://api.myanimelist.net/v2/anime/ranking?ranking_type=airing&limit=5"
+MANGA_URL = (
+    "https://api.myanimelist.net/v2/manga/ranking?ranking_type=bypopularity&limit=5"
+)
 
-def get_new_releases(api_url):
-    """Fetch latest anime or manga releases from MyAnimeList API."""
-    response = requests.get(api_url, headers=HEADERS)
-    if response.status_code == 200:
+
+def get_releases(url):
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
         return response.json().get("data", [])
-    return []
+    except requests.RequestException as e:
+        print(f"API Error: {e}")
+        return []
 
 
-def get_anime_details(anime_id):
-    """Fetch detailed anime information from MyAnimeList API."""
-    details_url = f"https://api.myanimelist.net/v2/anime/{anime_id}?fields=title,main_picture,genres,rank,score,media_type,num_list_users,num_episodes"
-    response = requests.get(details_url, headers=HEADERS)
-    return response.json() if response.status_code == 200 else {}
-
-
-def get_manga_details(manga_id):
-    """Fetch detailed manga information from MyAnimeList API."""
-    details_url = f"https://api.myanimelist.net/v2/manga/{manga_id}?fields=title,main_picture,genres,rank,score,num_list_users,num_chapters"
-    response = requests.get(details_url, headers=HEADERS)
-    return response.json() if response.status_code == 200 else {}
+def get_details(content_id, category):
+    fields = "title,main_picture,genres,rank,score,num_list_users," + (
+        "num_episodes,media_type" if category == "anime" else "num_chapters"
+    )
+    url = f"https://api.myanimelist.net/v2/{category}/{content_id}?fields={fields}"
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        print(f"Failed to get details for {category} {content_id}: {e}")
+        return {}
 
 
 def main():
-    last_sent = get_last_sent()  # Load previously sent notifications
-    new_anime = get_new_releases(ANIME_API_URL)
-    new_manga = get_new_releases(MANGA_API_URL)
-    sent_notifications = False  # Flag to check if any updates were sent
+    last_sent = get_last_sent()
+    updated = False
 
-    # 🔹 Check Anime Releases
-    for anime in new_anime:
-        anime_id = str(anime["node"]["id"])  # Ensure anime_id is a string
-
-        details = get_anime_details(anime_id)
+    # Anime
+    for item in get_releases(ANIME_URL):
+        anime_id = str(item["node"]["id"])
+        details = get_details(anime_id, "anime")
         if not details:
             continue
 
-        title = details.get("title", "Unknown")
-        image_url = details.get("main_picture", {}).get("medium", "")
-        anime_url = f"https://myanimelist.net/anime/{anime_id}"
-        genres = ", ".join([genre["name"] for genre in details.get("genres", [])])
-        anime_type = details.get("media_type", "Unknown").upper()
-        score = details.get("score", "N/A")
-        rank = details.get("rank", "N/A")
-        members = details.get("num_list_users", 0)
-        num_episodes = details.get("num_episodes", 0)
+        current_count = details.get("num_episodes", 0)
+        last_count = last_sent.get("anime", {}).get(anime_id, {}).get("last_episode", 0)
 
-        last_episode_sent = (
-            last_sent.get("anime", {}).get(anime_id, {}).get("last_episode", 0)
-        )
-
-        if num_episodes > last_episode_sent:
+        if current_count > last_count:
             send_discord_notification(
-                title,
-                anime_url,
-                image_url,
-                genres,
-                anime_type,
-                score,
-                rank,
-                members,
-                num_episodes,
+                details.get("title", "Unknown"),
+                f"https://myanimelist.net/anime/{anime_id}",
+                details.get("main_picture", {}).get("medium", ""),
+                ", ".join(g["name"] for g in details.get("genres", [])),
+                details.get("media_type", "Unknown").upper(),
+                details.get("score", "N/A"),
+                details.get("rank", "N/A"),
+                details.get("num_list_users", 0),
+                current_count,
                 "anime",
             )
             last_sent.setdefault("anime", {})[anime_id] = {
-                "title": title,
-                "last_episode": num_episodes,
+                "title": details["title"],
+                "last_episode": current_count,
             }
-            sent_notifications = True
+            updated = True
 
-    # 🔹 Check Manga Releases
-    for manga in new_manga:
-        manga_id = str(manga["node"]["id"])
-
-        details = get_manga_details(manga_id)
+    # Manga
+    for item in get_releases(MANGA_URL):
+        manga_id = str(item["node"]["id"])
+        details = get_details(manga_id, "manga")
         if not details:
             continue
 
-        title = details.get("title", "Unknown")
-        image_url = details.get("main_picture", {}).get("medium", "")
-        manga_url = f"https://myanimelist.net/manga/{manga_id}"
-        genres = ", ".join([genre["name"] for genre in details.get("genres", [])])
-        score = details.get("score", "N/A")
-        rank = details.get("rank", "N/A")
-        members = details.get("num_list_users", 0)
-        num_chapters = details.get("num_chapters", 0)
+        current_count = details.get("num_chapters", 0)
+        last_count = last_sent.get("manga", {}).get(manga_id, {}).get("last_chapter", 0)
 
-        last_chapter_sent = (
-            last_sent.get("manga", {}).get(manga_id, {}).get("last_chapter", 0)
-        )
-
-        if num_chapters > last_chapter_sent:
+        if current_count > last_count:
             send_discord_notification(
-                title,
-                manga_url,
-                image_url,
-                genres,
+                details.get("title", "Unknown"),
+                f"https://myanimelist.net/manga/{manga_id}",
+                details.get("main_picture", {}).get("medium", ""),
+                ", ".join(g["name"] for g in details.get("genres", [])),
                 "MANGA",
-                score,
-                rank,
-                members,
-                num_chapters,
+                details.get("score", "N/A"),
+                details.get("rank", "N/A"),
+                details.get("num_list_users", 0),
+                current_count,
                 "manga",
             )
             last_sent.setdefault("manga", {})[manga_id] = {
-                "title": title,
-                "last_chapter": num_chapters,
+                "title": details["title"],
+                "last_chapter": current_count,
             }
-            sent_notifications = True
+            updated = True
 
-    if sent_notifications:
+    if updated:
         save_last_sent(last_sent)
+        print("Updated last_sent.json")
 
 
 if __name__ == "__main__":

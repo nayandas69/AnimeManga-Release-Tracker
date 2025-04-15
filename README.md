@@ -3,14 +3,13 @@
 🫠 **AnimeManga Release Tracker** is a Python-based automation tool that **fetches new anime episode and manga chapter releases** from **MyAnimeList** and **sends rich notifications** to a Discord webhook.  
 
 ## 🔹 **Features:**  
-✅ **Tracks both Anime & Manga** 📖📺  
-✅ **Anime Genres & Type** (TV, Movie, OVA) 📌  
-✅ **Next Episode Countdown** (Time left until release) ⏳  
-✅ **Localized Time Conversion** (UTC → Local Time) 🌍  
-✅ **Popularity Stats** (Score, Rank, Members) 📊  
-✅ **Sends Rich Discord Messages** with **random embed colors** 🎨  
-✅ **Avoids Duplicate Notifications** 🫷  
-
+- [x] **Tracks both Anime & Manga**   
+- [x] **Anime Genres & Type** (TV, Movie, OVA)   
+- [x] **Next Episode Countdown** (Time left until release)   
+- [x] **Localized Time Conversion** (UTC → Local Time)   
+- [x] **Popularity Stats** (Score, Rank, Members)   
+- [x] **Sends Rich Discord Messages** with **random embed colors**  
+- [x] **Avoids Duplicate Notifications** 
 
 ## Setup & Installation 
 

@@ -1,12 +1,12 @@
-name: AnimeManga Release Tracker 
+name: AnimeManga Release Tracker
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Runs every day at 12:00 AM UTC
+    - cron: '0 0 * * *'  # Daily at 00:00 UTC
   push:
     branches:
-      - main  # Runs on push to main branch
-  workflow_dispatch:  # Allows manual trigger
+      - main
+  workflow_dispatch:
 
 jobs:
   run-tracker:
@@ -35,7 +35,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin main || true  # Prevent errors if no new changes
+          git pull origin main || true
           git add data/last_sent.json
-          git commit -m "Updated last_sent.json with latest episodes" || exit 0
+          git commit -m "Updated last_sent.json with latest releases" || exit 0
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git main
