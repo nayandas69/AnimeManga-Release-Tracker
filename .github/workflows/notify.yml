@@ -2,7 +2,7 @@ name: AnimeManga Release Tracker
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Daily at 00:00 UTC
+    - cron: '0 0 * * *'  # Runs every hour at :00 UTC
   push:
     branches:
       - main
@@ -11,6 +11,7 @@ on:
 jobs:
   run-tracker:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -20,16 +21,24 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
-      - name: Run Tracker
+      - name: Run Tracker Script
         env:
           MAL_CLIENT_ID: ${{ secrets.MAL_CLIENT_ID }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: python src/tracker.py
 
-      - name: Commit & Push Updated last_sent.json
+      - name: Commit and Push Updated last_sent.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

@@ -1,26 +1,4 @@
 {
-    "anime": {
-        "58514": {
-            "title": "Kusuriya no Hitorigoto 2nd Season",
-            "last_episode": 24
-        },
-        "53447": {
-            "title": "Tu Bian Yingxiong X",
-            "last_episode": 24
-        },
-        "51039": {
-            "title": "Doupo Cangqiong: Nian Fan",
-            "last_episode": 157
-        }
-    },
-    "manga": {
-        "23390": {
-            "title": "Shingeki no Kyojin",
-            "last_chapter": 141
-        },
-        "121496": {
-            "title": "Solo Leveling",
-            "last_chapter": 201
-        }
-    }
+    "anime": {},
+    "manga": {}
 }
