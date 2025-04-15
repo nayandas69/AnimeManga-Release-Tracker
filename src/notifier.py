@@ -28,7 +28,10 @@ def send_discord_notification(
         ),
         "color": get_random_color(),
         "thumbnail": {"url": image_url},
-        "footer": {"text": "AnimeManga Release Tracker"},
+        "footer": {
+            "text": "AnimeManga Release Tracker",
+            "icon_url": "https://avatars.githubusercontent.com/u/174907517?v=4",  # Icon URL for the footer
+        },
     }
 
     payload = {"embeds": [embed]}
